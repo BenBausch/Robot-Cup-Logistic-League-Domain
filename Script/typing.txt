@@ -1,0 +1,21 @@
+(define (domain rcll-production-steps)
+(:requirements 
+    :strips
+	:typing
+	:factored-privacy
+)
+
+(:types
+	robot - object
+	location - object
+	input output - location
+	ds_input rs_input cs_input - input
+	bs_output rs_output cs_output - output
+	s_location - location
+	machine - object
+	base_station ring_station cap_station delivery_station - machine
+	product - object
+	step - object
+	material_counter - object
+)
+

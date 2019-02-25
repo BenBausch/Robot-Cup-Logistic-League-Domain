@@ -1,0 +1,32 @@
+(:predicates
+	; stations
+	(input-location ?il - input ?m - machine)
+	(output-location ?ol - output ?m - machine)
+	(conveyor-full ?m - machine)
+	
+	; ring stations
+	(material-required ?s - step ?r - material_counter)
+	(material-stored ?m - machine ?r - material_counter)
+	(subtract ?minuend ?subtrahend ?difference - material_counter)
+	(add-one ?summand ?sum - material_counter)
+
+	; cap_station stations
+	(cap-buffered ?m - cap_station)
+	
+	; steps
+	(has-step ?p - product ?s - step)
+	(step-completed ?s - step)
+	(initial-step ?s - step)
+	(step-precedes ?s1 ?s2 - step)
+	(step-at-machine ?s - step ?m - machine)
+	
+	; products
+	(product-at ?p - product ?l - location)
+	
+	; materials
+	(material-at ?l - location)
+	
+	; locations
+	(location-occupied ?l - location)
+
+	(robot1-precedes ?r2 - robot)

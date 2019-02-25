@@ -1,0 +1,119 @@
+(:action dispense-material
+	:parameters (?m - base_station ?o - bs_output)
+	:precondition (and
+		(not (conveyor-full ?m))
+	)
+	:effect (and
+		(conveyor-full ?m)
+		(material-at ?o)
+		(increase (total-cost) 1)
+	)
+)
+
+(:action dispense-product
+	:parameters (?p - product ?s - step ?m - base_station ?o - bs_output)
+	:precondition (and
+		(has-step ?p ?s)
+		(step-at-machine ?s ?m)
+		(initial-step ?s)
+		(not (step-completed ?s))
+		(not (conveyor-full ?m))
+	)
+	:effect (and
+		(conveyor-full ?m)
+		(product-at ?p ?o)
+		(step-completed ?s)
+		(increase (total-cost) 1)
+	)
+)
+
+(:action mount-ring
+	:parameters (?m - ring_station ?p - product ?s1 ?s - step ?i - rs_input ?o - rs_output ?mi ?mr ?mf - material_counter)
+	:precondition (and
+		(product-at ?p ?i)
+		(has-step ?p ?s)
+		(step-at-machine ?s ?m)
+		(not (step-completed ?s))
+		(step-completed ?s1)
+		(step-precedes ?s1 ?s)
+		(input-location ?i ?m)
+		(output-location ?o ?m)
+		;(>= (material-stored ?m) (material-required ?s))
+		(material-required ?s ?mr)
+		(material-stored ?m ?mi)
+		(subtract ?mi ?mr ?mf)
+	)
+	:effect (and
+		(not (product-at ?p ?i))
+		(product-at ?p ?o)
+		(step-completed ?s)
+		;(decrease (material-stored ?m) (material-required ?s))
+		(not (material-stored ?m ?mi))
+		(material-stored ?m ?mf)
+		(increase (total-cost) 1)
+	)
+)
+
+(:action buffer-cap
+	:parameters (?m - cap_station ?i - cs_input ?o - cs_output)
+	:precondition (and
+		(input-location ?i ?m)
+		(output-location ?o ?m)
+		(material-at ?i)
+		(not (cap-buffered ?m))
+	)
+	:effect (and
+		(not (material-at ?i))
+		(material-at ?o)
+		(cap-buffered ?m)
+		(increase (total-cost) 1)
+	)
+)
+
+(:action mount-cap
+	:parameters (?m - cap_station ?p - product ?s - step ?i - cs_input ?o - cs_output)
+	:precondition (and
+		(product-at ?p ?i)
+		(has-step ?p ?s)
+		(step-at-machine ?s ?m)
+		(not (step-completed ?s))
+		(input-location ?i ?m)
+		(output-location ?o ?m)
+		(cap-buffered ?m)
+	)
+	:effect (and
+		(not (product-at ?p ?i))
+		(product-at ?p ?o)
+		(not (cap-buffered ?m))
+		(step-completed ?s)
+		(increase (total-cost) 1)
+	)
+)
+
+(:action deliver
+	:parameters (?p - product ?s - step ?m - delivery_station ?i - ds_input)
+	:precondition (and
+		(product-at ?p ?i)
+		(has-step ?p ?s)
+		(step-at-machine ?s ?m)
+		(not (step-completed ?s))
+	)
+	:effect (and
+		(not (product-at ?p ?i))
+		(not (conveyor-full ?m))
+		(step-completed ?s)
+		(increase (total-cost) 1)
+	)
+)
+
+(:action discard-material
+	:parameters (?m - delivery_station ?i - ds_input)
+	:precondition (and
+		(material-at ?i)
+	)
+	:effect (and
+		(not (material-at ?i))
+		(not (conveyor-full ?m))
+		(increase (total-cost) 1)
+	)
+)

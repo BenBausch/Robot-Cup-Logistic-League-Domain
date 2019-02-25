@@ -1,0 +1,8 @@
+(:functions
+	;(material-stored ?m - ring_station) - number
+	;(material-required ?s - step) - number
+	; paths
+	(path-length ?l1 ?l2 - location) - number
+	; cost
+	(total-cost) - number
+)

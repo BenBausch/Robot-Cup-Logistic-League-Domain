@@ -1,0 +1,13 @@
+(:init
+   (add-one zero one)	
+   (add-one one two)
+   (add-one two three)
+   (subtract three zero three)
+   (subtract two zero two)
+   (subtract one zero one)
+   (subtract zero zero zero)
+   (subtract three one two)
+   (subtract two one one)
+   (subtract one one zero)
+   (subtract three two one)
+   (subtract two two zero)

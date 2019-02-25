@@ -1,0 +1,10 @@
+
+  	       ; robots
+	       (robot1-at ?l - location)
+	       (robot1-at-init)
+	       (robot1-holding-material)
+	       (robot1-holding-product ?p - product)
+	       (robot1-holding-something)
+	       (robot1-recently-moved)
+	       (robot1-assigned-machine ?m - machine)
+   )

@@ -1,0 +1,10 @@
+(step-at-machine silver_base_p0 bs0)
+   (step-at-machine grey_cap_p0 cs1)
+   (step-at-machine gate2_delivery_p0 ds0)
+   (step-at-machine silver_base_p1 bs0)
+   (step-at-machine blue_ring_p1 rs0)
+   (step-at-machine orange_ring_p1 rs1)
+   (step-at-machine yellow_ring_p1 rs1)
+   (step-at-machine black_cap_p1 cs1)
+   (step-at-machine gate2_delivery_p1 ds0)
+   

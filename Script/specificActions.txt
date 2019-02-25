@@ -1,0 +1,188 @@
+(:action r1-insert-cap
+	:parameters (?m - cap_station ?i - cs_input)
+	:precondition (and
+		(robot1-assigned-machine ?m)
+		(robot1-at ?i)
+		(not (conveyor-full ?m))
+		(not (robot1-holding-something))
+		(input-location ?i ?m)
+		(not (cap-buffered ?m))
+	)
+	:effect (and
+		(conveyor-full ?m)
+		(material-at ?i)
+		(not (robot1-recently-moved))
+		(increase (total-cost) 30)
+	)
+)
+
+(:action r1-pickup-material
+	:parameters (?o - output ?m - machine)
+	:precondition (and
+		(robot1-assigned-machine ?m)
+		(robot1-at ?o)
+		(not (robot1-holding-something))
+		(output-location ?o ?m)
+		(material-at ?o)
+	)
+	:effect (and
+		(robot1-holding-material)
+		(robot1-holding-something)
+		(not (material-at ?o))
+		(not (conveyor-full ?m))
+		(not (robot1-recently-moved))
+		(increase (total-cost) 15)
+	)
+)
+
+(:action r1-pickup-product
+	:parameters (?o - output ?p - product ?m - machine)
+	:precondition (and
+		(robot1-assigned-machine ?m)
+		(robot1-at ?o)
+		(output-location ?o ?m)
+		(not (robot1-holding-something))
+		(product-at ?p ?o)
+	)
+	:effect (and
+		(robot1-holding-product ?p)
+		(robot1-holding-something)
+		(not (product-at ?p ?o))
+		(not (conveyor-full ?m))
+		(not (robot1-recently-moved))
+		(increase (total-cost) 15)
+	)
+)
+
+(:action r1-insert-product
+	:parameters (?i - input ?p - product ?m - machine)
+	:precondition (and
+		(robot1-at ?i)
+		(input-location ?i ?m)
+		(robot1-holding-product ?p)
+		(not (conveyor-full ?m))
+	)
+	:effect (and
+		(not (robot1-holding-product ?p))
+		(product-at ?p ?i)
+		(conveyor-full ?m)
+		(not (robot1-recently-moved))
+		(not (robot1-holding-something))
+		(increase (total-cost) 15)
+	)
+)
+
+(:action r1-insert-material
+	:parameters (?i - rs_input ?m - ring_station ?mi ?mf - material_counter)
+	:precondition (and
+		(robot1-at ?i)
+		(input-location ?i ?m)
+		(robot1-holding-material)
+		;(< (material-stored ?m) 3)
+		(material-stored ?m ?mi)
+		(add-one ?mi ?mf)
+	)
+	:effect (and
+		(not (robot1-holding-material))
+		;(increase (material-stored ?m) 1)
+		(not (material-stored ?m ?mi))
+		(material-stored ?m ?mf)
+		(not (robot1-recently-moved))
+		(not (robot1-holding-something))
+		(increase (total-cost) 15)
+	)
+)
+
+(:action r1-drop-material
+	:parameters ()
+	:precondition (and
+		(robot1-holding-material)
+	)
+	:effect (and
+		(not (robot1-holding-material))
+		(not (robot1-holding-something))
+		(not (robot1-recently-moved))
+		(increase (total-cost) 1)
+	)
+)
+
+(:action r1-transport-material
+	:parameters (?o - output ?i - rs_input ?m - ring_station)
+	:precondition (and
+		(input-location ?i ?m)
+		(robot1-at ?o)
+		(not (robot1-recently-moved))
+		(robot1-holding-material)
+		(not (location-occupied ?i))
+	)
+	:effect (and
+		(not (robot1-at ?o))
+		(not (material-at ?o))
+		(not (location-occupied ?o))
+		(location-occupied ?i)
+		(robot1-at ?i)
+		(robot1-recently-moved)
+		(increase (total-cost) (path-length ?o ?i))
+		;(increase (total-cost) 1)
+	)
+)
+
+(:action r1-transport-product
+	:parameters (?p - product ?o - output ?i - input ?m - machine ?s1 ?s2 - step)
+	:precondition (and
+		(robot1-holding-product ?p)
+		(has-step ?p ?s1)
+		(has-step ?p ?s2)
+		(step-at-machine ?s2 ?m)
+		(step-precedes ?s1 ?s2)
+		(step-completed ?s1)
+		(input-location ?i ?m)
+		(not (step-completed ?s2))
+		(robot1-at ?o)
+		(not (robot1-recently-moved))
+		(not (location-occupied ?i))
+	)
+	:effect (and
+		(not (robot1-at ?o))
+		(not (location-occupied ?o))
+		(location-occupied ?i)
+		(robot1-at ?i)
+		(robot1-recently-moved)
+		(increase (total-cost) (path-length ?o ?i))
+		;(increase (total-cost) 1)
+	)
+)
+
+(:action r1-move
+	:parameters (?l1 ?l2 - location)
+	:precondition (and
+		(robot1-at ?l1)
+		(not (robot1-holding-something))
+		(not (robot1-recently-moved))
+		(not (location-occupied ?l2))
+	)
+	:effect (and
+		(not (robot1-at ?l1))
+		(not (location-occupied ?l1))
+		(location-occupied ?l2)
+		(robot1-at ?l2)
+		(robot1-recently-moved)
+		(increase (total-cost) (path-length ?l1 ?l2))
+		;(increase (total-cost) 15)
+	)
+)
+
+(:action r1-move-in
+	:parameters (?l - s_location)
+	:precondition (and
+		(robot1-at-init)
+		;(not (exists (?_r - robot) (and (not (robot1-precedes ?_r)) (robot1-at-init))))
+		(not (location-occupied ?l))
+	)
+	:effect (and 
+		(not (robot1-at-init))
+		(location-occupied ?l)
+		(robot1-at ?l)
+		(increase (total-cost) 10)
+	)
+)
