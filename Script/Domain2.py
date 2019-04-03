@@ -5,6 +5,7 @@ Author: Ben Bausch
 """
 import WorldGenerator
 import os
+import sys
 from math import *
 from collections import defaultdict
 import numpy as np
@@ -18,7 +19,7 @@ import numpy as np
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def AsignProdToMachine(products, stations, stepLoc):
+def AsignProdToMachineRandomly(products, stations, stepLoc):
 
   with open('stationAsign.txt', 'w') as pred:
     #clears the file
@@ -135,6 +136,30 @@ def intToStr(i):
   elif i == 3:
     return 'three'
 
+def strToInt(i):
+  if i == 'zero':
+    return 0
+  elif i == 'one':
+    return 1
+  elif i == 'two':
+    return 2
+  elif i == 'three':
+    return 3
+
+def asignStation(agentNum, stations):
+  """
+  This methode asigns the different stations to the different robot.
+  """
+  statasign = defaultdict()
+  for agent in range(1, agentNum+1):
+    statasign['robot' + str(agent)] = []
+  agentProb = np.ones(agentNum)*(1/agentNum)
+  for stationType, stationAmount in enumerate(stations):
+    for stationNum in range(stationAmount):
+      robotNum = np.random.choice(agentNum,1, p=agentProb)
+      statasign['robot' + str(robotNum[0]+1)].append(gS(stationType+1)+str(stationNum))
+  return statasign
+
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -144,7 +169,7 @@ def intToStr(i):
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-def generateDomains(privateVar=True, homogen=True, stations=[1, 2, 2, 1], agentNum=3,
+def generateDomains(path, privateVar=True, homogen=True, stations=[1, 2, 2, 1], agentNum=3,
                    products=[["base", "blue", "red", "cap"], ["base", "yellow", "red", "cap"]]):
   """
   This method will generate agentNum Pddl files. These files are the Domains for each robot need for
@@ -161,7 +186,7 @@ def generateDomains(privateVar=True, homogen=True, stations=[1, 2, 2, 1], agentN
   # first we create agentNum different Domain files
   # since
   for i in range(1, agentNum + 1):
-    new_file_name = "domain-a" + str(i) + ".pddl"
+    new_file_name = path + "/domain-a" + str(i) + ".pddl"
     f = open(new_file_name, "a")
     f.truncate(0)
 
@@ -223,9 +248,8 @@ def generateDomains(privateVar=True, homogen=True, stations=[1, 2, 2, 1], agentN
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def generateProblems(stations=[1, 2, 2, 1], agentNum=3,
-                     products=[["silver_base", "blue_ring", "orange_ring", "black_cap"]],
-                     statasign={'robot1': ['bs0', 'ds0'], 'robot2': ['rs0', 'cs0'], 'robot3': ['rs1', 'cs1']}):
+def generateProblems(path, stations=[1, 2, 2, 1], agentNum=3, products=[["silver_base", "blue_ring", "orange_ring", "black_cap"]], width=30, length=30):
+        #statasign={'robot1': ['bs0', 'ds0'], 'robot2': ['rs0', 'cs0'], 'robot3': ['rs1', 'cs1']}):
   """
   This method will generate agentNum Pddl files. These files are the Problem files for each robot need for
   the decentralized Planning.
@@ -244,26 +268,32 @@ def generateProblems(stations=[1, 2, 2, 1], agentNum=3,
   stepLoc = defaultdict()
 
   #asign the products to the machine
-  AsignProdToMachine(products, stations, stepLoc)
-
+  AsignProdToMachineRandomly(products, stations, stepLoc)
   #this layout will be important to calculate the distance form on station to the another one
-  layout = WorldGenerator.generateRadnomLayout(stations[0], stations[1], stations[2], stations[3], agentNum=agentNum)
+  layout = WorldGenerator.generateRadnomLayout(stations[0], stations[1], stations[2], stations[3], width, length, agentNum=agentNum)
 
   # define how much material is needed for a production step
   # the same for all the robots
   with open('matneeded.txt', 'w') as mat:
     mat.truncate(0)
-    counter = 0
-    for prod in products:
-      for component in prod:
-        amount = intToStr(np.random.randint(4))
-        mat.write(
-          '(material-required ' + component + '_p' + str(counter) + ' ' + amount + ')\n   ')
-      counter += 1
+    for stationType in stations:
+      for station in range(stationType):
+        stationName = gS(stationType) + str(station)
+        stationMat = 3
+        try:
+          for component in stepLoc[stationName]:
+            amount = intToStr(np.random.randint(stationMat + 1))
+            stationMat -= strToInt(amount)
+            mat.write(
+              '(material-required ' + component + ' ' + amount + ')\n   ')
+        except KeyError:
+          pass
+  #Asign the stations to the Robots
+  statasign = asignStation(agentNum, stations)
 
   #create one file for each agent
   for i in range(1, agentNum + 1):
-    new_file_name = "problem-a" + str(i) + ".pddl"
+    new_file_name = path + "/problem-a" + str(i) + ".pddl"
     f = open(new_file_name, "a")
     f.truncate(0)
 
@@ -326,10 +356,11 @@ def generateProblems(stations=[1, 2, 2, 1], agentNum=3,
           f.write('(robot' + str(j) + '-precedes r' + str(k) + ')\n   ')
 
     #assigning the stations to the robots
+    print(statasign['robot' + str(i)])
     for val in statasign['robot' + str(i)]:
       f.write('(robot' + str(i) + '-assigned-machine ' + val + ')\n   ')
 
-    #now we add the station assignments
+    #now we add the steps to the stations
     with open('stationAsign.txt', 'r') as pred:
       lines = pred.readlines()
       f.writelines(lines)
@@ -395,7 +426,7 @@ def generateProblems(stations=[1, 2, 2, 1], agentNum=3,
             f.write(
               '(= (path-length ' + gS(j[0]) + str(j[4]) + '_out ' + gS(k[0]) + str(k[4]) + '_out) ' + str(t) + ')\n   ')
 
-    #add the distance from start to start(not covered yet)
+    #add the distance from start to start
     f.write('(= (path-length start start) 0) \n   ')
     f.write('(= (total-cost) 0)\n)\n')
 
@@ -420,7 +451,11 @@ def generateProblems(stations=[1, 2, 2, 1], agentNum=3,
 
 
 if __name__ == "__main__":
+  name = sys.argv[1]
+  path = os.getcwd() + "/Problems/" + name
+  os.mkdir(path)
+  distibution = defaultdict()
   products = [['silver_base', 'grey_cap', 'gate2_delivery'],['silver_base', 'blue_ring', 'orange_ring', 'yellow_ring', 'black_cap', 'gate2_delivery']]
   generateDomains(products=products)
-  generateProblems(products=products)
-
+  generateProblems(distribution, products=products, random_distri=False)
+  
