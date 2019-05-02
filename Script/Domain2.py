@@ -276,16 +276,18 @@ def generateProblems(path, stations=[1, 2, 2, 1], agentNum=3, products=[["silver
   # the same for all the robots
   with open('matneeded.txt', 'w') as mat:
     mat.truncate(0)
-    for stationType in stations:
-      for station in range(stationType):
-        stationName = gS(stationType) + str(station)
+    for stationType, stationCount in enumerate(stations):
+      for station in range(stationCount):
+        print(stationType)
+        stationName = gS(stationType+1) + str(station)
         stationMat = 3
         try:
           for component in stepLoc[stationName]:
             amount = intToStr(np.random.randint(stationMat + 1))
             stationMat -= strToInt(amount)
-            mat.write(
-              '(material-required ' + component + ' ' + amount + ')\n   ')
+            if not("gate" in component):
+              mat.write(
+                '(material-required ' + component + ' ' + amount + ')\n   ')
         except KeyError:
           pass
   #Asign the stations to the Robots
@@ -436,13 +438,14 @@ def generateProblems(path, stations=[1, 2, 2, 1], agentNum=3, products=[["silver
 
     f.write('(:goal (and\n   ')
     # all the robots want that all the steps an every machine are completed
-    for val in statasign['robot' + str(i)]:
+    """for val in statasign['robot' + str(i)]:
       try:
         for prod in stepLoc[val]:
           f.write('(step-completed ' + prod + ')\n   ')
       except KeyError:
-        pass
-
+        pass"""
+    for prodNum, prod in enumerate(products):
+        f.write('(step-completed ' + prod[-1] + '_p' + str(prodNum) + ')\n   ')
     # _________________________________________________________________________________________________________________
     # Metric
     # _________________________________________________________________________________________________________________
@@ -458,4 +461,3 @@ if __name__ == "__main__":
   products = [['silver_base', 'grey_cap', 'gate2_delivery'],['silver_base', 'blue_ring', 'orange_ring', 'yellow_ring', 'black_cap', 'gate2_delivery']]
   generateDomains(products=products)
   generateProblems(distribution, products=products, random_distri=False)
-  
