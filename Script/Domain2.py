@@ -358,7 +358,7 @@ def generateProblems(path, stations=[1, 2, 2, 1], agentNum=3, products=[["silver
           f.write('(robot' + str(j) + '-precedes r' + str(k) + ')\n   ')
 
     #assigning the stations to the robots
-    print(statasign['robot' + str(i)])
+    #print(statasign['robot' + str(i)])
     for val in statasign['robot' + str(i)]:
       f.write('(robot' + str(i) + '-assigned-machine ' + val + ')\n   ')
 
