@@ -9,4 +9,3 @@ The schript takes parameters as input, such as the number of agents in the world
 If you have any questions regarding the script, send me an email.
 email: benbausch@gmail.com 
 
-# Planner Requirements
